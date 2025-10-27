@@ -5,450 +5,665 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart To-Do List | Priority Queue & Circular Queue</title>
     <meta name="description" content="A smart to-do list application demonstrating priority queue and circular queue data structures. Organize tasks by priority and track completed items efficiently.">
-    <meta name="keywords" content="to-do list, priority queue, circular queue, task management, data structures">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
-        /* Design System - HSL Colors */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --background: 240 20% 99%;
-            --foreground: 240 10% 15%;
+            --primary: 262.1 83.3% 57.8%;
+            --primary-foreground: 210 20% 98%;
+            --accent: 240 4.8% 95.9%;
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
             --card: 0 0% 100%;
-            --card-foreground: 240 10% 15%;
-            --primary: 240 80% 60%;
-            --primary-foreground: 0 0% 100%;
-            --secondary: 240 10% 96%;
-            --secondary-foreground: 240 10% 15%;
-            --muted: 240 10% 96%;
-            --muted-foreground: 240 5% 50%;
-            --accent: 240 10% 94%;
-            --border: 240 10% 90%;
-            --input: 240 10% 90%;
-            --ring: 240 80% 60%;
-            --priority-high: 0 85% 65%;
-            --priority-high-foreground: 0 0% 100%;
-            --priority-medium: 38 92% 60%;
-            --priority-medium-foreground: 38 92% 15%;
-            --priority-low: 160 70% 55%;
-            --priority-low-foreground: 160 90% 98%;
+            --card-foreground: 240 10% 3.9%;
+            --border: 240 5.9% 90%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --priority-high: 0 84.2% 60.2%;
+            --priority-high-fg: 0 0% 100%;
+            --priority-medium: 45 93.4% 47.5%;
+            --priority-medium-fg: 60 9.1% 7.8%;
+            --priority-low: 142.1 76.2% 36.3%;
+            --priority-low-fg: 0 0% 100%;
         }
-        
+
         .dark {
-            --background: 240 20% 8%;
-            --foreground: 240 10% 95%;
-            --card: 240 15% 12%;
-            --card-foreground: 240 10% 95%;
-            --primary: 240 80% 70%;
-            --secondary: 240 10% 18%;
-            --secondary-foreground: 240 10% 95%;
-            --muted: 240 10% 18%;
-            --muted-foreground: 240 5% 60%;
-            --accent: 240 10% 20%;
-            --border: 240 10% 20%;
-            --input: 240 10% 20%;
-            --ring: 240 80% 70%;
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --muted: 240 3.7% 15.9%;
+            --muted-foreground: 240 5% 64.9%;
+            --accent: 240 3.7% 15.9%;
         }
-        
+
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--background)) 50%, hsl(var(--accent)) 100%);
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.7s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(to right, hsl(var(--primary)), rgb(147, 51, 234), rgb(219, 39, 119));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: hsl(var(--muted-foreground));
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 3rem;
+        }
+
+        .input-form {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        input, select, button {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        input {
+            flex: 1;
+            min-width: 200px;
+            height: 3rem;
+            padding: 0 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.375rem;
             background: hsl(var(--background));
             color: hsl(var(--foreground));
         }
-        
-        /* Animations */
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        input:focus {
+            outline: 2px solid hsl(var(--primary));
+            outline-offset: 2px;
         }
-        
-        @keyframes slide-in-bottom {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        select {
+            width: 8rem;
+            height: 3rem;
+            padding: 0 2rem 0 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.375rem;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.25rem;
         }
-        
-        .animate-fade-in {
-            animation: fade-in 0.5s ease-out;
-        }
-        
-        .animate-slide-in {
-            animation: slide-in-bottom 0.3s ease-out;
-        }
-        
-        /* Toast Styles */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 20px;
-            border-radius: 8px;
-            box-shadow: 0 8px 30px -6px hsl(240 20% 50% / 0.3);
+
+        button {
+            height: 3rem;
+            padding: 0 1.5rem;
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 12px;
-            z-index: 1000;
-            animation: fade-in 0.3s ease-out;
-            max-width: 400px;
+            gap: 0.5rem;
+            transition: all 0.2s;
         }
-        
-        .toast-success {
-            background: hsl(var(--card));
-            border: 1px solid hsl(var(--border));
+
+        button:hover {
+            opacity: 0.9;
         }
-        
-        .toast-error {
-            background: hsl(var(--card));
-            border: 1px solid hsl(0 85% 65%);
+
+        button:active {
+            transform: scale(0.98);
         }
-        
-        /* Priority Styles */
-        .priority-high {
-            border-left: 4px solid hsl(var(--priority-high));
-            background: linear-gradient(to bottom right, hsl(0 85% 65% / 0.1), hsl(350 85% 55% / 0.1));
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
         }
-        
-        .priority-medium {
-            border-left: 4px solid hsl(var(--priority-medium));
-            background: linear-gradient(to bottom right, hsl(45 92% 65% / 0.1), hsl(35 92% 55% / 0.1));
-        }
-        
-        .priority-low {
-            border-left: 4px solid hsl(var(--priority-low));
-            background: linear-gradient(to bottom right, hsl(165 70% 60% / 0.1), hsl(155 70% 50% / 0.1));
-        }
-        
-        .badge-high {
-            background: hsl(var(--priority-high));
-            color: hsl(var(--priority-high-foreground));
-        }
-        
-        .badge-medium {
-            background: hsl(var(--priority-medium));
-            color: hsl(var(--priority-medium-foreground));
-        }
-        
-        .badge-low {
-            background: hsl(var(--priority-low));
-            color: hsl(var(--priority-low-foreground));
-        }
-    </style>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: 'hsl(var(--background))',
-                        foreground: 'hsl(var(--foreground))',
-                        card: 'hsl(var(--card))',
-                        'card-foreground': 'hsl(var(--card-foreground))',
-                        primary: 'hsl(var(--primary))',
-                        'primary-foreground': 'hsl(var(--primary-foreground))',
-                        secondary: 'hsl(var(--secondary))',
-                        muted: 'hsl(var(--muted))',
-                        'muted-foreground': 'hsl(var(--muted-foreground))',
-                        border: 'hsl(var(--border))',
-                        input: 'hsl(var(--input))',
-                        ring: 'hsl(var(--ring))',
-                    }
-                }
+
+        @media (min-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
             }
         }
-    </script>
+
+        .queue-section {
+            animation: fadeIn 0.7s ease-out;
+        }
+
+        .queue-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .icon-box {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .priority-icon {
+            background: hsl(var(--primary) / 0.1);
+            color: hsl(var(--primary));
+        }
+
+        .completed-icon {
+            background: hsl(142.1 76.2% 36.3% / 0.1);
+            color: hsl(142.1 76.2% 36.3%);
+        }
+
+        .queue-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .queue-desc {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            border: 2px dashed hsl(var(--border));
+            border-radius: 0.5rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .task-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+            transition: all 0.3s;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-card.high {
+            border-left-color: hsl(var(--priority-high));
+            background: linear-gradient(135deg, rgba(254, 226, 226, 0.5) 0%, rgba(252, 231, 243, 0.5) 100%);
+        }
+
+        .task-card.medium {
+            border-left-color: hsl(var(--priority-medium));
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(254, 249, 195, 0.5) 100%);
+        }
+
+        .task-card.low {
+            border-left-color: hsl(var(--priority-low));
+            background: linear-gradient(135deg, rgba(209, 250, 229, 0.5) 0%, rgba(204, 251, 241, 0.5) 100%);
+        }
+
+        .task-card.completed {
+            opacity: 0.6;
+        }
+
+        .task-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 0.75rem;
+        }
+
+        .task-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .position-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-radius: 9999px;
+            background: hsl(var(--primary) / 0.1);
+            color: hsl(var(--primary));
+        }
+
+        .priority-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .priority-badge.high {
+            background: hsl(var(--priority-high));
+            color: hsl(var(--priority-high-fg));
+        }
+
+        .priority-badge.medium {
+            background: hsl(var(--priority-medium));
+            color: hsl(var(--priority-medium-fg));
+        }
+
+        .priority-badge.low {
+            background: hsl(var(--priority-low));
+            color: hsl(var(--priority-low-fg));
+        }
+
+        .task-text {
+            font-size: 1rem;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            width: 2rem;
+            height: 2rem;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn.complete:hover {
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .icon-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+            animation: fadeIn 1s ease-out;
+        }
+
+        .info-box {
+            background: hsl(var(--card) / 0.5);
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideInRight 0.3s ease-out;
+            z-index: 1000;
+            max-width: 20rem;
+        }
+
+        .toast.success {
+            border-left: 4px solid hsl(142.1 76.2% 36.3%);
+        }
+
+        .toast.error {
+            border-left: 4px solid hsl(0 84.2% 60.2%);
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-desc {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .queue-info {
+            font-size: 0.75rem;
+            color: hsl(var(--muted-foreground));
+            text-align: center;
+            padding-top: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
-    
-    <!-- Main App -->
-    <div class="min-h-screen" style="background: linear-gradient(135deg, hsl(240 30% 98%) 0%, hsl(250 40% 96%) 100%);">
-        <div class="container mx-auto px-4 py-8 max-w-6xl">
-            <!-- Header -->
-            <header class="text-center mb-12 animate-fade-in">
-                <h1 class="text-5xl font-bold mb-3" style="background: linear-gradient(to right, hsl(240 80% 60%), hsl(270 80% 60%), hsl(320 80% 60%)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                    Smart To-Do List
-                </h1>
-                <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Powered by Priority Queue & Circular Queue data structures
-                </p>
-            </header>
+    <div class="container">
+        <header>
+            <h1>Smart To-Do List</h1>
+            <p class="subtitle">Powered by Priority Queue & Circular Queue data structures</p>
+        </header>
 
-            <!-- Task Input -->
-            <div class="mb-12 animate-fade-in">
-                <div class="bg-card rounded-xl shadow-lg border border-border p-6">
-                    <form id="task-form" class="flex gap-3 w-full">
-                        <input
-                            type="text"
-                            id="task-input"
-                            placeholder="Enter a new task..."
-                            class="flex-1 h-12 px-3 py-2 text-base rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                            required
-                        />
-                        <select
-                            id="priority-select"
-                            class="w-32 h-12 px-3 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                            <option value="high">High</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                        <button
-                            type="submit"
-                            class="h-12 px-6 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity font-medium flex items-center gap-2"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                            </svg>
-                            Add
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Queues Grid -->
-            <div class="grid lg:grid-cols-2 gap-8">
-                <!-- Priority Queue -->
-                <div class="animate-fade-in">
-                    <div class="bg-card rounded-xl shadow-lg border border-border p-6 h-full">
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-lg" style="background: hsl(var(--primary) / 0.1);">
-                                    <svg class="w-5 h-5" style="color: hsl(var(--primary));" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2 class="text-xl font-bold">Priority Queue</h2>
-                                    <p class="text-sm text-muted-foreground">
-                                        Tasks sorted by priority (High → Medium → Low)
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div id="priority-queue-container">
-                                <div class="text-center py-12 px-4 rounded-lg border-2 border-dashed border-border">
-                                    <p class="text-muted-foreground">No active tasks. Add one to get started!</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Circular Queue -->
-                <div class="animate-fade-in">
-                    <div class="bg-card rounded-xl shadow-lg border border-border p-6 h-full">
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-lg" style="background: hsl(160 70% 55% / 0.1);">
-                                    <svg class="w-5 h-5" style="color: hsl(160 70% 45%);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2 class="text-xl font-bold">Circular Queue (Completed)</h2>
-                                    <p class="text-sm text-muted-foreground">
-                                        Recently completed tasks (max 5, FIFO rotation)
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div id="circular-queue-container">
-                                <div class="text-center py-12 px-4 rounded-lg border-2 border-dashed border-border">
-                                    <p class="text-muted-foreground">No completed tasks yet.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Info Footer -->
-            <footer class="mt-12 text-center text-sm text-muted-foreground animate-fade-in">
-                <div class="rounded-lg border border-border p-4 max-w-3xl mx-auto" style="background: hsl(var(--card) / 0.5);">
-                    <p class="font-semibold mb-2">Data Structures in Action</p>
-                    <p>
-                        <strong>Priority Queue:</strong> Tasks are automatically sorted by priority (High → Medium → Low).
-                        <strong>Circular Queue:</strong> Completed tasks are stored in a FIFO queue with a maximum size of 5.
-                    </p>
-                </div>
-            </footer>
+        <div class="card">
+            <form class="input-form" id="taskForm">
+                <input type="text" id="taskInput" placeholder="Enter a new task..." required>
+                <select id="prioritySelect">
+                    <option value="high">High</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <button type="submit">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add
+                </button>
+            </form>
         </div>
+
+        <div class="grid">
+            <div class="card queue-section">
+                <div class="queue-header">
+                    <div class="icon-box priority-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="10" y1="6" x2="21" y2="6"></line>
+                            <line x1="10" y1="12" x2="21" y2="12"></line>
+                            <line x1="10" y1="18" x2="21" y2="18"></line>
+                            <path d="M4 6h1v4"></path>
+                            <path d="M4 10h2"></path>
+                            <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="queue-title">Priority Queue</h2>
+                        <p class="queue-desc">Tasks sorted by priority (High → Medium → Low)</p>
+                    </div>
+                </div>
+                <div id="priorityQueue" class="empty-state">
+                    <p>No active tasks. Add one to get started!</p>
+                </div>
+            </div>
+
+            <div class="card queue-section">
+                <div class="queue-header">
+                    <div class="icon-box completed-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="queue-title">Circular Queue (Completed)</h2>
+                        <p class="queue-desc">Recently completed tasks (max 5, FIFO rotation)</p>
+                    </div>
+                </div>
+                <div id="completedQueue" class="empty-state">
+                    <p>No completed tasks yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="info-box">
+                <p class="info-title">Data Structures in Action</p>
+                <p>
+                    <strong>Priority Queue:</strong> Tasks are automatically sorted by priority (High → Medium → Low). 
+                    <strong>Circular Queue:</strong> Completed tasks are stored in a FIFO queue with a maximum size of 5.
+                </p>
+            </div>
+        </footer>
     </div>
 
     <script>
-        // Application State
-        let tasks = [];
-        let completedTasks = [];
-        const MAX_COMPLETED = 5;
+        class TodoApp {
+            constructor() {
+                this.tasks = [];
+                this.completedTasks = [];
+                this.maxCompletedSize = 5;
+                this.init();
+            }
 
-        // Toast Notification System
-        function showToast(message, type = 'success', description = '') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = toast toast-${type};
-            
-            const icon = type === 'success' 
-                ? '<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
-                : '<svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-            
-            toast.innerHTML = `
-                ${icon}
-                <div>
-                    <div class="font-semibold">${message}</div>
-                    ${description ? <div class="text-sm text-muted-foreground">${description}</div> : ''}
-                </div>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => container.removeChild(toast), 300);
-            }, 3000);
-        }
+            init() {
+                document.getElementById('taskForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addTask();
+                });
+                this.render();
+            }
 
-        // Task Management
-        function addTask(taskText, priority) {
-            const task = {
-                id: Date.now().toString(),
-                task: taskText,
-                priority: priority
-            };
-            
-            tasks.push(task);
-            renderPriorityQueue();
-            showToast('Task added to priority queue!', 'success', Priority: ${priority.toUpperCase()});
-        }
+            addTask() {
+                const input = document.getElementById('taskInput');
+                const select = document.getElementById('prioritySelect');
+                const task = input.value.trim();
+                const priority = select.value;
 
-        function completeTask(id) {
-            const taskIndex = tasks.findIndex(t => t.id === id);
-            if (taskIndex !== -1) {
-                const task = tasks[taskIndex];
-                tasks.splice(taskIndex, 1);
+                if (!task) return;
+
+                const newTask = {
+                    id: Date.now().toString(),
+                    task,
+                    priority
+                };
+
+                this.tasks.push(newTask);
+                this.showToast('success', 'Task added to priority queue!', Priority: ${priority.toUpperCase()});
                 
-                // Add to circular queue with FIFO logic
-                completedTasks.push(task);
-                if (completedTasks.length > MAX_COMPLETED) {
-                    completedTasks.shift(); // Remove oldest
+                input.value = '';
+                select.value = 'medium';
+                this.render();
+            }
+
+            completeTask(id) {
+                const taskIndex = this.tasks.findIndex(t => t.id === id);
+                if (taskIndex === -1) return;
+
+                const task = this.tasks[taskIndex];
+                this.tasks.splice(taskIndex, 1);
+                
+                // Circular queue logic - FIFO with max size
+                this.completedTasks.push(task);
+                if (this.completedTasks.length > this.maxCompletedSize) {
+                    this.completedTasks.shift(); // Remove oldest
                 }
-                
-                renderPriorityQueue();
-                renderCircularQueue();
-                showToast('Task completed!', 'success', 'Moved to circular queue');
+
+                this.showToast('success', 'Task completed!', 'Moved to circular queue');
+                this.render();
             }
-        }
 
-        function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            renderPriorityQueue();
-            showToast('Task deleted', 'error');
-        }
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.showToast('error', 'Task deleted');
+                this.render();
+            }
 
-        // Rendering Functions
-        function renderPriorityQueue() {
-            const container = document.getElementById('priority-queue-container');
-            
-            if (tasks.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 px-4 rounded-lg border-2 border-dashed border-border">
-                        <p class="text-muted-foreground">No active tasks. Add one to get started!</p>
-                    </div>
+            sortTasks() {
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                return [...this.tasks].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+            }
+
+            showToast(type, title, description = '') {
+                const toast = document.createElement('div');
+                toast.className = toast ${type};
+                toast.innerHTML = `
+                    <div class="toast-title">${title}</div>
+                    ${description ? <div class="toast-desc">${description}</div> : ''}
                 `;
-                return;
-            }
-            
-            // Sort by priority
-            const priorityOrder = { high: 0, medium: 1, low: 2 };
-            const sortedTasks = [...tasks].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-            
-            container.innerHTML = `
-                <div class="space-y-3">
-                    ${sortedTasks.map((task, index) => createTaskCard(task, index + 1, false)).join('')}
-                </div>
-            `;
-        }
+                document.body.appendChild(toast);
 
-        function renderCircularQueue() {
-            const container = document.getElementById('circular-queue-container');
-            
-            if (completedTasks.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 px-4 rounded-lg border-2 border-dashed border-border">
-                        <p class="text-muted-foreground">No completed tasks yet.</p>
-                    </div>
-                `;
-                return;
+                setTimeout(() => {
+                    toast.style.animation = 'slideInRight 0.3s ease-out reverse';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             }
-            
-            container.innerHTML = `
-                <div class="space-y-3">
-                    ${completedTasks.map((task, index) => createTaskCard(task, index + 1, true)).join('')}
-                    ${completedTasks.length === MAX_COMPLETED ? 
-                        <p class="text-xs text-muted-foreground text-center pt-2">Queue is full (${MAX_COMPLETED} tasks)</p> 
-                        : ''}
-                </div>
-            `;
-        }
 
-        function createTaskCard(task, position, isCompleted) {
-            return `
-                <div class="p-4 rounded-lg transition-all duration-300 hover:shadow-lg priority-${task.priority} ${isCompleted ? 'opacity-60' : ''} animate-slide-in">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold rounded-full" style="background: hsl(var(--primary) / 0.1); color: hsl(var(--primary));">
-                                    ${position}
-                                </span>
-                                <span class="text-xs font-semibold px-2 py-1 rounded-full badge-${task.priority}">
-                                    ${task.priority.toUpperCase()}
-                                </span>
+            renderTaskCard(task, position, isCompleted = false) {
+                return `
+                    <div class="task-card ${task.priority} ${isCompleted ? 'completed' : ''}">
+                        <div class="task-content">
+                            <div class="task-info">
+                                <div class="task-meta">
+                                    <span class="position-badge">${position}</span>
+                                    <span class="priority-badge ${task.priority}">${task.priority.toUpperCase()}</span>
+                                </div>
+                                <p class="task-text ${isCompleted ? 'completed' : ''}">${task.task}</p>
                             </div>
-                            <p class="text-base ${isCompleted ? 'line-through' : ''}">${task.task}</p>
+                            ${!isCompleted ? `
+                                <div class="task-actions">
+                                    <button class="icon-btn complete" onclick="app.completeTask('${task.id}')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(34, 197, 94)" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </button>
+                                    <button class="icon-btn delete" onclick="app.deleteTask('${task.id}')">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(239, 68, 68)" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
-                        ${!isCompleted ? `
-                            <div class="flex gap-2">
-                                <button
-                                    onclick="completeTask('${task.id}')"
-                                    class="h-8 w-8 rounded hover:bg-green-100 transition-colors flex items-center justify-center"
-                                    title="Complete task"
-                                >
-                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    onclick="deleteTask('${task.id}')"
-                                    class="h-8 w-8 rounded hover:bg-red-100 transition-colors flex items-center justify-center"
-                                    title="Delete task"
-                                >
-                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        ` : ''}
                     </div>
-                </div>
-            `;
+                `;
+            }
+
+            render() {
+                const priorityQueue = document.getElementById('priorityQueue');
+                const completedQueue = document.getElementById('completedQueue');
+
+                // Render priority queue
+                const sortedTasks = this.sortTasks();
+                if (sortedTasks.length === 0) {
+                    priorityQueue.className = 'empty-state';
+                    priorityQueue.innerHTML = '<p>No active tasks. Add one to get started!</p>';
+                } else {
+                    priorityQueue.className = 'task-list';
+                    priorityQueue.innerHTML = sortedTasks
+                        .map((task, index) => this.renderTaskCard(task, index + 1))
+                        .join('');
+                }
+
+                // Render circular queue
+                if (this.completedTasks.length === 0) {
+                    completedQueue.className = 'empty-state';
+                    completedQueue.innerHTML = '<p>No completed tasks yet.</p>';
+                } else {
+                    const queueContainer = document.createElement('div');
+                    queueContainer.innerHTML = `
+                        <div class="task-list">
+                            ${this.completedTasks
+                                .map((task, index) => this.renderTaskCard(task, index + 1, true))
+                                .join('')}
+                        </div>
+                        ${this.completedTasks.length >= this.maxCompletedSize ? 
+                            <p class="queue-info">Showing last ${this.maxCompletedSize} of ${this.completedTasks.length} completed tasks</p> 
+                            : ''}
+                    `;
+                    completedQueue.className = '';
+                    completedQueue.innerHTML = queueContainer.innerHTML;
+                }
+            }
         }
 
-        // Event Listeners
-        document.getElementById('task-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const taskInput = document.getElementById('task-input');
-            const prioritySelect = document.getElementById('priority-select');
-            
-            const taskText = taskInput.value.trim();
-            if (taskText) {
-                addTask(taskText, prioritySelect.value);
-                taskInput.value = '';
-                prioritySelect.value = 'medium';
-            }
-        });
-
-        // Initial render
-        renderPriorityQueue();
-        renderCircularQueue();
+        // Initialize app
+        const app = new TodoApp();
     </script>
 </body>
 </html>
